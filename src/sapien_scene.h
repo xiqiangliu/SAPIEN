@@ -44,6 +44,7 @@ class ActorBuilder;
 class LinkBuilder;
 class ArticulationBuilder;
 class SDrive6D;
+class SDistanceJoint;
 class SDrive;
 struct SContact;
 
@@ -111,6 +112,8 @@ private:
   uint32_t mDefaultSolverVelocityIterations;
   std::shared_ptr<SPhysicalMaterial> mDefaultMaterial;
 
+  bool mStepping{false}; // true between stepAsync and stepWait
+
 public:
   inline void setName(std::string const &name) { mName = name; }
   inline std::string getName() { return mName; }
@@ -162,6 +165,8 @@ public:
    */
   void removeKinematicArticulation(SKArticulation *articulation);
 
+  SDistanceJoint *createDistanceJoint(SActorBase *actor1, PxTransform const &pose1,
+                                      SActorBase *actor2, PxTransform const &pose2);
   SDrive6D *createDrive(SActorBase *actor1, PxTransform const &pose1, SActorBase *actor2,
                         PxTransform const &pose2);
   /** Remove a drive immediately */

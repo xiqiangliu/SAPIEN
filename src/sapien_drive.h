@@ -29,6 +29,19 @@ public:
   virtual ~SDrive() = default;
 };
 
+class SDistanceJoint : public SDrive {
+  friend SScene;
+  PxDistanceJoint *mJoint;
+
+public:
+  SDistanceJoint(SScene *scene, SActorBase *actor1, PxTransform const &pose1, SActorBase *actor2,
+                 PxTransform const &pose2);
+
+  PxJoint *getPxJoint() const override;
+  void setRange(float minDist, float maxDist);
+  void setDrivePrioerties(float stiffness, float damping, bool enabled);
+};
+
 class SDrive6D : public SDrive {
   friend SScene;
 

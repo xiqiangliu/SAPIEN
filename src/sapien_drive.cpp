@@ -16,6 +16,39 @@ PxTransform SDrive::getLocalPose2() const {
 SDrive::SDrive(SScene *scene, SActorBase *actor1, SActorBase *actor2)
     : mScene(scene), mActor1(actor1), mActor2(actor2){};
 
+SDistanceJoint::SDistanceJoint(SScene *scene, SActorBase *actor1, PxTransform const &pose1,
+                               SActorBase *actor2, PxTransform const &pose2)
+    : SDrive(scene, actor1, actor2) {
+  PxRigidActor *pxa1 = actor1 ? actor1->getPxActor() : nullptr;
+  PxRigidActor *pxa2 = actor2 ? actor2->getPxActor() : nullptr;
+  mJoint = PxDistanceJointCreate(*scene->getSimulation()->mPhysicsSDK, pxa1, pose1, pxa2, pose2);
+  mJoint->userData = this;
+}
+
+PxJoint *SDistanceJoint::getPxJoint() const { return mJoint; }
+
+void SDistanceJoint::setRange(float minDist, float maxDist) {
+  if (std::isinf(maxDist)) {
+    mJoint->setDistanceJointFlag(PxDistanceJointFlag::eMAX_DISTANCE_ENABLED, false);
+  } else {
+    mJoint->setDistanceJointFlag(PxDistanceJointFlag::eMAX_DISTANCE_ENABLED, true);
+    mJoint->setMaxDistance(maxDist);
+  }
+  if (minDist == 0.f) {
+    mJoint->setDistanceJointFlag(PxDistanceJointFlag::eMIN_DISTANCE_ENABLED, false);
+    return;
+  } else {
+    mJoint->setDistanceJointFlag(PxDistanceJointFlag::eMIN_DISTANCE_ENABLED, true);
+    mJoint->setMinDistance(minDist);
+  }
+}
+
+void SDistanceJoint::setDrivePrioerties(float stiffness, float damping, bool enabled) {
+  mJoint->setDistanceJointFlag(PxDistanceJointFlag::eSPRING_ENABLED, enabled);
+  mJoint->setStiffness(stiffness);
+  mJoint->setDamping(damping);
+}
+
 SDrive6D::SDrive6D(SScene *scene, SActorBase *actor1, PxTransform const &pose1, SActorBase *actor2,
                    PxTransform const &pose2)
     : SDrive(scene, actor1, actor2) {

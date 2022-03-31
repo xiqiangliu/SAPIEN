@@ -95,6 +95,30 @@ std::unique_ptr<URDF::URDFLoader> SScene::createURDFLoader() {
   return std::make_unique<URDF::URDFLoader>(this);
 }
 
+SDistanceJoint *SScene::createDistanceJoint(SActorBase *actor1, PxTransform const &pose1,
+                                            SActorBase *actor2, PxTransform const &pose2) {
+  mDrives.push_back(
+      std::unique_ptr<SDistanceJoint>(new SDistanceJoint(this, actor1, pose1, actor2, pose2)));
+  auto drive = mDrives.back().get();
+  if (actor1) {
+    actor1->addDrive(drive);
+    if (actor1->getType() == EActorType::DYNAMIC) {
+      static_cast<PxRigidDynamic *>(actor1->getPxActor())->wakeUp();
+    } else if (actor1->getType() == EActorType::ARTICULATION_LINK) {
+      static_cast<PxArticulationLink *>(actor1->getPxActor())->getArticulation().wakeUp();
+    }
+  }
+  if (actor2) {
+    actor2->addDrive(drive);
+    if (actor2->getType() == EActorType::DYNAMIC) {
+      static_cast<PxRigidDynamic *>(actor2->getPxActor())->wakeUp();
+    } else if (actor2->getType() == EActorType::ARTICULATION_LINK) {
+      static_cast<PxArticulationLink *>(actor2->getPxActor())->getArticulation().wakeUp();
+    }
+  }
+  return static_cast<SDistanceJoint *>(drive);
+}
+
 SDrive6D *SScene::createDrive(SActorBase *actor1, PxTransform const &pose1, SActorBase *actor2,
                               PxTransform const &pose2) {
   mDrives.push_back(std::unique_ptr<SDrive6D>(new SDrive6D(this, actor1, pose1, actor2, pose2)));
@@ -449,6 +473,11 @@ void SScene::step() {
 }
 
 void SScene::stepAsync() {
+  if (mStepping) {
+    stepWait();
+  }
+
+  mStepping = true;
   for (auto &a : mActors) {
     if (!a->isBeingDestroyed())
       a->prestep();
@@ -475,6 +504,7 @@ void SScene::stepWait() {
   event.scene = this;
   event.timeStep = getTimestep();
   emit(event);
+  mStepping = false;
 }
 
 void SScene::updateRender() {

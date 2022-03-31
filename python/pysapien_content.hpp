@@ -220,6 +220,7 @@ void buildSapien(py::module &m) {
   auto PySceneConfig = py::class_<SceneConfig>(m, "SceneConfig");
   auto PyScene = py::class_<SScene>(m, "Scene");
   auto PyConstraint = py::class_<SDrive>(m, "Constraint");
+  auto PyDistanceConstraint = py::class_<SDistanceJoint, SDrive>(m, "DistanceConstraint");
   auto PyDrive = py::class_<SDrive6D, SDrive>(m, "Drive");
 
   auto PyEntity = py::class_<SEntity>(m, "Entity");
@@ -762,6 +763,9 @@ If after testing g2 and g3, the objects may collide, g0 and g1 come into play. g
            py::return_value_policy::reference)
       .def("get_all_lights", &SScene::getAllLights, py::return_value_policy::reference)
       // drive, constrains, and joints
+      .def("create_distance_constraint", &SScene::createDistanceJoint, py::arg("actor1"),
+           py::arg("pose1"), py::arg("actor2"), py::arg("pose2"),
+           py::return_value_policy::reference)
       .def("create_drive", &SScene::createDrive, py::arg("actor1"), py::arg("pose1"),
            py::arg("actor2"), py::arg("pose2"), py::return_value_policy::reference)
       .def_property_readonly("render_id_to_visual_name", &SScene::findRenderId2VisualName)
@@ -875,6 +879,11 @@ If after testing g2 and g3, the objects may collide, g0 and g1 come into play. g
           py::arg("data"));
 
   //======= Drive =======//
+  PyDistanceConstraint
+      .def("set_drive_properties", &SDistanceJoint::setDrivePrioerties, py::arg("stiffness"),
+           py::arg("damping"), py::arg("enabled") = true)
+      .def("set_range", &SDistanceJoint::setRange, py::arg("min"), py::arg("max"));
+
   PyDrive.def("set_x_limit", &SDrive6D::setXLimit, py::arg("low"), py::arg("high"))
       .def("set_y_limit", &SDrive6D::setYLimit, py::arg("low"), py::arg("high"))
       .def("set_z_limit", &SDrive6D::setZLimit, py::arg("low"), py::arg("high"))

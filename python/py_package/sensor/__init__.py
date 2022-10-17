@@ -1,1 +1,1 @@
-from .activelight import ActiveLightSensor, ActiveLightSensorCUDA
+from .activelight import ActiveLightSensor

@@ -3,7 +3,7 @@ if [ -z ${VERSION} ]
 then
     echo VERSION variable is not specified
     VERSION=2.0.0.dev$(date +"%Y%m%d")
-    echo VERSION defaults to ${VERSION}
+    echo VERSION defatuls to ${VERSION}
     sleep 3
 fi
 

@@ -15,7 +15,7 @@
 #include "sapien/sapien_contact.h"
 #include "sapien/sapien_drive.h"
 #include "sapien/sapien_entity_particle.h"
-#include "sapien/sapien_gear.h"
+// #include "sapien/sapien_gear.h"
 #include "sapien/sapien_material.h"
 #include "sapien/sapien_scene.h"
 #include "sapien/simulation.h"
@@ -296,7 +296,7 @@ void buildSapien(py::module &m) {
   auto PyScene = py::class_<SScene>(m, "Scene");
   auto PyConstraint = py::class_<SDrive>(m, "Constraint");
   auto PyDrive = py::class_<SDrive6D, SDrive>(m, "Drive");
-  auto PyGear = py::class_<SGear>(m, "Gear");
+  // auto PyGear = py::class_<SGear>(m, "Gear");
 
   auto PyEntity = py::class_<SEntity>(m, "Entity");
   auto PyActorBase = py::class_<SActorBase, SEntity>(m, "ActorBase");
@@ -697,7 +697,16 @@ If after testing g2 and g3, the objects may collide, g0 and g1 come into play. g
       .def_readwrite("enable_ccd", &SceneConfig::enableCCD)
       .def_readwrite("enable_enhanced_determinism", &SceneConfig::enableEnhancedDeterminism)
       .def_readwrite("enable_friction_every_iteration", &SceneConfig::enableFrictionEveryIteration)
-      .def_readwrite("enable_adaptive_force", &SceneConfig::enableAdaptiveForce)
+      .def_property(
+          "enable_adaptive_force",
+          [](SceneConfig &) {
+            PyErr_WarnEx(PyExc_DeprecationWarning, "adaptive_force is removed. It has no effect.",
+                         1);
+          },
+          [](SceneConfig &, bool) {
+            PyErr_WarnEx(PyExc_DeprecationWarning, "adaptive_force is removed. It has no effect",
+                         1);
+          })
       .def("__repr__", [](SceneConfig &) { return "SceneConfig()"; });
 
   //======== Simulation ========//
@@ -813,8 +822,8 @@ If after testing g2 and g3, the objects may collide, g0 and g1 come into play. g
       // drive, constrains, and joints
       .def("create_drive", &SScene::createDrive, py::arg("actor1"), py::arg("pose1"),
            py::arg("actor2"), py::arg("pose2"), py::return_value_policy::reference)
-      .def("create_gear", &SScene::createGear, py::arg("actor1"), py::arg("pose1"),
-           py::arg("actor2"), py::arg("pose2"), py::return_value_policy::reference)
+      // .def("create_gear", &SScene::createGear, py::arg("actor1"), py::arg("pose1"),
+      //      py::arg("actor2"), py::arg("pose2"), py::return_value_policy::reference)
       .def_property_readonly("render_id_to_visual_name", &SScene::findRenderId2VisualName)
 
       // renderer
@@ -962,7 +971,7 @@ If after testing g2 and g3, the objects may collide, g0 and g1 come into play. g
           },
           py::arg("linear"), py::arg("angular"));
 
-  PyGear.def_property("ratio", &SGear::getRatio, &SGear::setRatio);
+  // PyGear.def_property("ratio", &SGear::getRatio, &SGear::setRatio);
 
   PyEntity.def_property_readonly("_ptr", [](SEntity &e) { return (void *)&e; })
       .def_property("name", &SEntity::getName, &SEntity::setName)
@@ -2489,5 +2498,4 @@ Args:
 
   dlpack.def("dl_cuda_sync", []() { cudaStreamSynchronize(0); });
 #endif
-
 }

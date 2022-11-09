@@ -220,15 +220,9 @@ def main():
 
     scene.set_environment_map(create_dome_envmap())
 
-    # sapien.VulkanRenderer.set_camera_shader_dir("../vulkan_shader/default_camera")
-
     mount = scene.create_actor_builder().build_kinematic()
     mount.set_pose(Pose([-3, 0, 2], qmult(aa([0, 0, 1], 0.3), aa([0, 1, 0], 0.5))))
     cam1 = scene.add_mounted_camera("cam", mount, Pose(), 1920, 1080, 0, 1, 0.1, 100)
-
-    print(cam1.get_projection_matrix())
-
-    # sapien.VulkanRenderer.set_camera_shader_dir("../vulkan_shader/active_light")
 
     mount = scene.create_actor_builder().build_kinematic()
     mount.set_pose(Pose([-3, 0, 2], qmult(aa([0, 0, 1], 0.3), aa([0, 1, 0], 0.5))))
@@ -242,7 +236,7 @@ def main():
 
     urdf = download_partnet_mobility(
         40147,
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZ4aWFuZ0BlbmcudWNzZC5lZHUiLCJpcCI6IjE3Mi4yMC4wLjEiLCJwcml2aWxlZ2UiOjEwLCJpYXQiOjE2MzE3NDUzMjYsImV4cCI6MTY2MzI4MTMyNn0.ET7f80-ork2UrbTj9XtTa_qn7pilxG_8omyV6ffE51o",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZ4aWFuZ0BlbmcudWNzZC5lZHUiLCJpcCI6IjE3Mi4yMC4wLjEiLCJwcml2aWxlZ2UiOjEwLCJmaWxlT25seSI6dHJ1ZSwiaWF0IjoxNjY3OTUyODI0LCJleHAiOjE2OTk0ODg4MjR9.X108AonXY6X7QksN9lY6MJAE74OnCmnzoBPK7rWxbvM",
     )
     loader = scene.create_urdf_loader()
     loader.fix_root_link = True
@@ -253,31 +247,6 @@ def main():
     loader.fix_root_link = True
     robot = loader.load("../assets/robot/movo/movo.urdf")
     robot.get_qpos()
-    import ipdb; ipdb.set_trace()
-    # for j in robot.get_active_joints():
-    #     j.set_drive_property(1000, 200)
-    # robot.set_qpos([4.71, 2.84, 0.0, 0.75, 4.62, 4.48, 4.88, 0, 0])
-    # robot.set_drive_target([4.71, 2.84, 0.0, 0.75, 4.62, 4.48, 4.88, 0, 0])
-
-    # import tempfile
-    # with tempfile.TemporaryDirectory(prefix="sapien") as d:
-    #     import os
-    #     import mplib
-    #     link_names = [link.get_name() for link in robot.get_links()]
-    #     joint_names = [joint.get_name() for joint in robot.get_active_joints()]
-    #     urdf = robot.export_urdf(d)
-    #     urdf_file = os.path.join(d, 'robot.urdf')
-    #     with open(urdf_file, 'w') as f:
-    #         f.write(urdf)
-    #     planner = mplib.Planner(
-    #         urdf_file,
-    #         link_names,
-    #         joint_names,
-    #         "j2s7s300_end_effector",
-    #         np.ones(7) * 10,
-    #         np.ones(7) * 10,
-    #     )
-    #     import ipdb; ipdb.set_trace()
 
     viewer.set_scene(scene)
     viewer.set_camera_xyz(-4, 0, 0.3)
@@ -291,16 +260,7 @@ def main():
     ant.set_qf(f)
     scene.step()
 
-    # scene.renderer_scene.set_ambient_light([0, 0, 0])
-
     dirlight = scene.add_directional_light([0, 0, -1], [0.3, 0.3, 0.3], True)
-
-    # scene.renderer_scene.add_point_light([0, 1, 1], [1, 2, 2], True)
-
-    # light = scene.renderer_scene.add_spot_light(
-    #     [0, 0, 2], [0, 0, -1], np.pi / 2, [1, 1, 1], True
-    # )
-
     light = scene.add_active_light(
         Pose([0, 0, 1]),
         [1, 1, 1],
@@ -308,53 +268,16 @@ def main():
         "../3rd_party/sapien-vulkan-2/test/assets/image/flashlight.jpg",
     )
 
-    # light = scene.add_spot_light([0, 0, 1], [0, 0, -1], np.pi / 2, np.pi / 2,
-    #                              [1, 1, 1], True)
-
-    # light.set_position([0, 0, 0.1])
-    # light.set_direction([0, -100, -1])
-    # light.set_color([100, 100, 100])
-    # light.set_shadow_parameters(1, 100)
-
-    # light.set_position([0, 0, 5])
-    # light.set_direction([0, -1, -1])
-
     plight = scene.add_point_light([0, -1, 1], [2, 1, 2], True)
-    # scene.renderer_scene.add_point_light([0, 1, -1], [2, 2, 1])
 
     print(scene.get_all_lights())
 
     count = 0
     while not viewer.closed:
         for i in range(4):
-            f = scene.step_async()
-        f.wait()
+            f = scene.step()
         scene.update_render()
         viewer.render()
-        count += 1
-
-        cam2.take_picture()
-        img = cam2.get_dl_tensor("Color")
-        shape = sapien.dlpack.dl_shape(img)
-        output = np.zeros(shape, dtype=np.float32)
-        sapien.dlpack.dl_to_numpy_cuda_async_unchecked(img, output)
-        sapien.dlpack.dl_cuda_sync()
-
-        imgs = cam2.take_picture_and_get_dl_tensors_async(["Color"]).wait()
-        shape = sapien.dlpack.dl_shape(imgs[0])
-        output = np.zeros(shape, dtype=np.float32)
-        sapien.dlpack.dl_to_numpy_cuda_async_unchecked(imgs[0], output)
-        sapien.dlpack.dl_cuda_sync()
-
-        print('here1')
-        import matplotlib.pyplot as plt
-        plt.imshow(output)
-        plt.show()
-        print('here2')
-
-        robot.get_qpos()
-        if count == 1:
-            viewer.window.resize(1024, 768)
 
         # import torch.utils.dlpack
 

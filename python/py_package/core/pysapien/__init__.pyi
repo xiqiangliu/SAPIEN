@@ -31,7 +31,6 @@ __all__ = [
     "Drive",
     "Engine",
     "Entity",
-    "Gear",
     "IPxrRenderer",
     "Joint",
     "JointBase",
@@ -82,7 +81,8 @@ __all__ = [
     "VulkanWindow",
     "add_profiler_event",
     "dlpack",
-    "renderer"
+    "renderer",
+    "simsense"
 ]
 
 
@@ -733,16 +733,6 @@ class ActiveLightEntity(LightEntity, Entity):
         """
         :type: float
         """
-    pass
-class Gear():
-    @property
-    def ratio(self) -> float:
-        """
-        :type: float
-        """
-    @ratio.setter
-    def ratio(self, arg1: float) -> None:
-        pass
     pass
 class IPxrRenderer():
     def create_material(self) -> RenderMaterial: ...
@@ -1548,7 +1538,6 @@ class Scene():
     def create_actor_builder(self) -> ActorBuilder: ...
     def create_articulation_builder(self) -> ArticulationBuilder: ...
     def create_drive(self, actor1: ActorBase, pose1: Pose, actor2: ActorBase, pose2: Pose) -> Drive: ...
-    def create_gear(self, actor1: ActorDynamicBase, pose1: Pose, actor2: ActorDynamicBase, pose2: Pose) -> Gear: ...
     def create_physical_material(self, static_friction: float, dynamic_friction: float, restitution: float) -> PhysicalMaterial: ...
     def create_urdf_loader(self) -> URDFLoader: ...
     def find_actor_by_id(self, id: int) -> ActorBase: ...
@@ -1671,12 +1660,12 @@ class SceneConfig():
     def default_static_friction(self, arg0: float) -> None:
         pass
     @property
-    def enable_adaptive_force(self) -> bool:
+    def enable_adaptive_force(self) -> None:
         """
-        :type: bool
+        :type: None
         """
     @enable_adaptive_force.setter
-    def enable_adaptive_force(self, arg0: bool) -> None:
+    def enable_adaptive_force(self, arg1: bool) -> None:
         pass
     @property
     def enable_ccd(self) -> bool:

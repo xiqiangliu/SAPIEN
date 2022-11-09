@@ -78,6 +78,9 @@ std::string LinkBuilder::summary() const {
     case PxArticulationJointType::eSPHERICAL:
       ss << "Spherical. Unsupported";
       break;
+    default:
+      ss << "Encountered unknown jonit type in articulation builder.";
+      break;
     }
   }
   return ss.str();

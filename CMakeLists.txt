@@ -33,6 +33,7 @@ if (${SAPIEN_CUDA})
     option(SVULKAN2_CUDA_INTEROP "" ON)
     option(KUAFU_OPTIX_DENOISER "" ON)
     add_definitions(-DSAPIEN_DLPACK)
+    add_definitions(-DSVULKAN2_CUDA_INTEROP)
 else()
     option(SVULKAN2_CUDA_INTEROP "" OFF)
     option(KUAFU_OPTIX_DENOISER "" OFF)
@@ -57,6 +58,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif ()
 
 add_definitions(-DVULKAN_HPP_DISPATCH_LOADER_DYNAMIC)
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
@@ -81,7 +84,6 @@ include_directories("src" "src/renderer" "/usr/include/eigen3" "/usr/local/inclu
 include_directories(
     "include"
     "${CMAKE_CURRENT_SOURCE_DIR}/../PhysX/physx/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../PhysX/pxshared/include"
     "src/renderer"
     )
 
@@ -101,6 +103,8 @@ endif ()
 # PVD currently not used add_definitions(-DPVD_HOST="192.168.0.110")
 
 add_subdirectory("3rd_party/pybind11")
+include_directories("3rd_party/pybind11/include")
+
 add_subdirectory("3rd_party/tinyxml2")
 add_subdirectory("3rd_party/sapien-vulkan-2" EXCLUDE_FROM_ALL)
 add_subdirectory("3rd_party/kuafu" EXCLUDE_FROM_ALL)
@@ -112,7 +116,6 @@ if (${SAPIEN_CUDA})
     add_definitions(-DSAPIEN_SIMSENSE)
 endif ()
 
-include_directories("3rd_party/pybind11/include")
 include_directories("3rd_party/sapien-vulkan-2/include")
 include_directories("3rd_party/sapien-vulkan-2/3rd_party/VulkanMemoryAllocator")
 include_directories("3rd_party/sapien-vulkan-2/3rd_party/imgui")

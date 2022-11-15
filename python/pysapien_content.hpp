@@ -1097,6 +1097,8 @@ If after testing g2 and g3, the objects may collide, g0 and g1 come into play. g
                                  return "fixed";
                                case physx::PxArticulationJointType::eREVOLUTE:
                                  return "revolute";
+                               case physx::PxArticulationJointType::eREVOLUTE_UNWRAPPED:
+                                 return "revolute_unwrapped";
                                case physx::PxArticulationJointType::ePRISMATIC:
                                  return "prismatic";
                                case physx::PxArticulationJointType::eUNDEFINED:
@@ -1682,13 +1684,15 @@ References:
             PxArticulationJointType::Enum t;
             if (jointType == "revolute" || jointType == "hinge") {
               t = PxArticulationJointType::Enum::eREVOLUTE;
+            } else if (jointType == "revolute_unwrapped") {
+              t = PxArticulationJointType::Enum::eREVOLUTE_UNWRAPPED;
             } else if (jointType == "prismatic" || jointType == "slider") {
               t = PxArticulationJointType::Enum::ePRISMATIC;
             } else if (jointType == "fixed") {
               t = PxArticulationJointType::Enum::eFIX;
             } else {
               throw std::runtime_error("Unsupported joint type: " + jointType +
-                                       "; supported types are: revolute, prismatic, fixed.");
+                                       "; supported types are: revolute, revolute_unwrapped, prismatic, fixed.");
             }
 
             b.setJointProperties(t, l, parentPose, childPose, friction, damping);
@@ -1697,7 +1701,7 @@ References:
 Set the properties of the joint.
 
 Args:
-  joint_type: ["revolute", "prismatic", "fixed"]
+  joint_type: ["revolute", "revolute_unwrapped", "prismatic", "fixed"]
   limits: [[min1, max1], ...], the length is the DoF
   pose_in_parent: joint pose in parent frame. 
     The x-axis is the rotation axis for revolute, or the translation axis for prismatic.
@@ -1719,6 +1723,8 @@ Args:
                                  return "fixed";
                                case physx::PxArticulationJointType::eREVOLUTE:
                                  return "revolute";
+                               case physx::PxArticulationJointType::eREVOLUTE_UNWRAPPED:
+                                 return "revolute_unwrapped";
                                case physx::PxArticulationJointType::ePRISMATIC:
                                  return "prismatic";
                                case physx::PxArticulationJointType::eUNDEFINED:
@@ -1759,6 +1765,7 @@ Args:
       .def_readwrite("load_multiple_collisions_from_file",
                      &URDF::URDFLoader::multipleMeshesInOneFile)
       .def_readwrite("collision_is_visual", &URDF::URDFLoader::collisionIsVisual)
+      .def_readwrite("revolute_unwrapped", &URDF::URDFLoader::revoluteUnwrapped)
       .def_readwrite("scale", &URDF::URDFLoader::scale)
       .def_readwrite("package_dir", &URDF::URDFLoader::packageDir)
       .def(

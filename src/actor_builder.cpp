@@ -685,6 +685,7 @@ SActor *ActorBuilder::build(bool isKinematic, std::string const &name) const {
   auto sActor =
       std::unique_ptr<SActor>(new SActor(actor, actorId, mScene, renderBodies, collisionBodies));
 
+  actor->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_GYROSCOPIC_FORCES, true);
   actor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, isKinematic);
   for (size_t i = 0; i < shapes.size(); ++i) {
     shapes[i]->setCollisionGroups(mCollisionGroup.w0, mCollisionGroup.w1, mCollisionGroup.w2,

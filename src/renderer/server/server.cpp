@@ -239,7 +239,7 @@ Status RenderServiceImpl::RemoveBody(ServerContext *c, const proto::RemoveBodyRe
 }
 
 void RenderServiceImpl::updateObjectMaterialMap() {
-  mObjectMaterialMap.lockWrite();
+  auto lock = mObjectMaterialMap.lockWrite();
   std::erase_if(mObjectMaterialMap.getMap(), [](const auto &item) {
     auto const &[key, value] = item;
     return value.expired();

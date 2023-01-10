@@ -685,6 +685,7 @@ bool RenderServer::waitAll(uint64_t timeout) {
 bool RenderServer::waitScenes(std::vector<int> const &list, uint64_t timeout) {
   std::vector<vk::Semaphore> sems;
   std::vector<uint64_t> values;
+  ReadLock(mService->mSceneListLock);
   for (int index : list) {
     for (auto cam : mService->mSceneList.at(index)->cameraList) {
       sems.push_back(cam->semaphore.get());

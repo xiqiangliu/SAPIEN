@@ -233,7 +233,7 @@ std::vector<std::shared_ptr<IPxrRenderShape>> ClientRigidbody::getRenderShapes()
 ClientScene::ClientScene(ClientRenderer *renderer, rs_id_t id, std::string const &name)
     : mRenderer(renderer), mId(id), mName(name) {}
 
-IPxrRigidbody *ClientScene::addRigidbody(physx::PxGeometryType::Enum type,
+IPxrRigidbody *ClientScene::addRigidbody(RenderGeometryType type,
                                          const physx::PxVec3 &scale, const physx::PxVec3 &color) {
   auto mat = mRenderer->createMaterial();
   mat->setBaseColor({color.x, color.y, color.z, 1.f});
@@ -259,7 +259,7 @@ IPxrRigidbody *ClientScene::addRigidbody(const std::string &meshFile, const phys
   }
   throw std::runtime_error(status.error_message());
 }
-IPxrRigidbody *ClientScene::addRigidbody(physx::PxGeometryType::Enum type,
+IPxrRigidbody *ClientScene::addRigidbody(RenderGeometryType type,
                                          const physx::PxVec3 &scale,
                                          std::shared_ptr<IPxrMaterial> material) {
   if (!material) {
@@ -277,16 +277,16 @@ IPxrRigidbody *ClientScene::addRigidbody(physx::PxGeometryType::Enum type,
   req.mutable_scale()->set_z(scale.z);
 
   switch (type) {
-  case physx::PxGeometryType::eBOX:
+  case RenderGeometryType::eBOX:
     req.set_type(proto::PrimitiveType::BOX);
     break;
-  case physx::PxGeometryType::eCAPSULE:
+  case RenderGeometryType::eCAPSULE:
     req.set_type(proto::PrimitiveType::CAPSULE);
     break;
-  case physx::PxGeometryType::eSPHERE:
+  case RenderGeometryType::eSPHERE:
     req.set_type(proto::PrimitiveType::SPHERE);
     break;
-  case physx::PxGeometryType::ePLANE:
+  case RenderGeometryType::ePLANE:
     req.set_type(proto::PrimitiveType::PLANE);
     break;
   default:

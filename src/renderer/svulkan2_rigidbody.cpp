@@ -8,7 +8,7 @@ namespace Renderer {
 
 SVulkan2Rigidbody::SVulkan2Rigidbody(SVulkan2Scene *scene,
                                      std::vector<svulkan2::scene::Object *> const &objects,
-                                     physx::PxGeometryType::Enum type, physx::PxVec3 scale)
+                                     RenderGeometryType type, physx::PxVec3 scale)
     : mParentScene(scene), mObjects(objects), mType(type), mScale(scale) {}
 
 void SVulkan2Rigidbody::setUniqueId(uint32_t uniqueId) {

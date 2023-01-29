@@ -22,7 +22,7 @@ class IPxrRididbody;
 class ActorBuilder : public std::enable_shared_from_this<ActorBuilder> {
 public:
   struct ShapeRecord {
-    enum Type { SingleMesh, MultipleMeshes, NonConvexMesh, Box, Capsule, Sphere } type;
+    enum Type { SingleMesh, MultipleMeshes, NonConvexMesh, Box, Capsule, Sphere, Cylinder } type;
     // mesh, scale also for box
     std::string filename;
     PxVec3 scale;
@@ -42,7 +42,7 @@ public:
   };
 
   struct VisualRecord {
-    enum Type { File, Box, Capsule, Sphere, Mesh } type;
+    enum Type { File, Box, Capsule, Sphere, Mesh, Cylinder } type;
 
     std::string filename;
     PxVec3 scale;
@@ -116,6 +116,12 @@ public:
                   bool isTrigger = false);
 
   std::shared_ptr<ActorBuilder>
+  addCylinderShape(const PxTransform &pose = {{0, 0, 0}, PxIdentity}, PxReal radius = 1,
+                   PxReal halfLength = 1, std::shared_ptr<SPhysicalMaterial> material = nullptr,
+                   PxReal density = 1000.f, PxReal patchRadius = 0.f, PxReal minPatchRadius = 0.f,
+                   bool isTrigger = false);
+
+  std::shared_ptr<ActorBuilder>
   addSphereShape(const PxTransform &pose = {{0, 0, 0}, PxIdentity}, PxReal radius = 1,
                  std::shared_ptr<SPhysicalMaterial> material = nullptr, PxReal density = 1000.f,
                  PxReal patchRadius = 0.f, PxReal minPatchRadius = 0.f, bool isTrigger = false);
@@ -136,6 +142,14 @@ public:
                                                  PxReal radius = 1, PxReal halfLength = 1,
                                                  const PxVec3 &color = {1, 1, 1},
                                                  std::string const &name = "");
+
+  std::shared_ptr<ActorBuilder> addCylinderVisualWithMaterial(
+      const PxTransform &pose = {{0, 0, 0}, PxIdentity}, PxReal radius = 1, PxReal halfLength = 1,
+      std::shared_ptr<Renderer::IPxrMaterial> material = {}, std::string const &name = "");
+  std::shared_ptr<ActorBuilder>
+  addCylinderVisual(const PxTransform &pose = {{0, 0, 0}, PxIdentity}, PxReal radius = 1,
+                    PxReal halfLength = 1, const PxVec3 &color = {1, 1, 1},
+                    std::string const &name = "");
 
   std::shared_ptr<ActorBuilder>
   addSphereVisualWithMaterial(const PxTransform &pose = {{0, 0, 0}, PxIdentity}, PxReal radius = 1,

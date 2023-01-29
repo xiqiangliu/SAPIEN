@@ -16,12 +16,12 @@ class SVulkan2Rigidbody : public IPxrRigidbody {
   uint32_t mUniqueId{0};
   uint32_t mSegmentationId{0};
 
-  physx::PxGeometryType::Enum mType;
+  RenderGeometryType mType;
   physx::PxVec3 mScale;
 
 public:
   SVulkan2Rigidbody(SVulkan2Scene *scene, std::vector<svulkan2::scene::Object *> const &objects,
-                    physx::PxGeometryType::Enum type, physx::PxVec3 scale);
+                    RenderGeometryType type, physx::PxVec3 scale);
   SVulkan2Rigidbody(SVulkan2Rigidbody const &other) = delete;
 
   SVulkan2Rigidbody &operator=(SVulkan2Rigidbody const &other) = delete;
@@ -46,7 +46,7 @@ public:
 
   void destroy() override;
 
-  physx::PxGeometryType::Enum getType() const override { return mType; }
+  RenderGeometryType getType() const override { return mType; }
   physx::PxVec3 getScale() const override;
 
   /** internal use only */

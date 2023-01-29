@@ -147,9 +147,9 @@ public:
   IPxrRigidbody *addRigidbody(const std::string &meshFile, const physx::PxVec3 &scale) override;
   IPxrRigidbody *addRigidbody(const std::string &meshFile, const physx::PxVec3 &scale,
                               std::shared_ptr<IPxrMaterial> material) override;
-  IPxrRigidbody *addRigidbody(physx::PxGeometryType::Enum type, const physx::PxVec3 &scale,
+  IPxrRigidbody *addRigidbody(RenderGeometryType type, const physx::PxVec3 &scale,
                               std::shared_ptr<IPxrMaterial> material) override;
-  IPxrRigidbody *addRigidbody(physx::PxGeometryType::Enum type, const physx::PxVec3 &scale,
+  IPxrRigidbody *addRigidbody(RenderGeometryType type, const physx::PxVec3 &scale,
                               const physx::PxVec3 &color) override;
   IPxrRigidbody *addRigidbody(std::vector<physx::PxVec3> const &vertices,
                               std::vector<physx::PxVec3> const &normals,

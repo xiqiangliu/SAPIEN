@@ -218,7 +218,7 @@ IPxrRigidbody *KuafuScene::addRigidbody(const std::string &meshFile, const physx
   return addRigidbody(meshFile, scale, nullptr);
 }
 
-IPxrRigidbody *KuafuScene::addRigidbody(physx::PxGeometryType::Enum type,
+IPxrRigidbody *KuafuScene::addRigidbody(RenderGeometryType type,
                                         const physx::PxVec3 &scale,
                                         std::shared_ptr<IPxrMaterial> material) {
   std::shared_ptr<kuafu::Geometry> geometry;
@@ -229,16 +229,16 @@ IPxrRigidbody *KuafuScene::addRigidbody(physx::PxGeometryType::Enum type,
   auto new_scale = scale;
 
   switch (type) {
-  case physx::PxGeometryType::eBOX:
+  case RenderGeometryType::eBOX:
     geometry = kuafu::createCube(true, kMat);
     break;
-  case physx::PxGeometryType::eSPHERE:
+  case RenderGeometryType::eSPHERE:
     geometry = kuafu::createSphere(true, kMat);
     break;
-  case physx::PxGeometryType::ePLANE:
+  case RenderGeometryType::ePLANE:
     geometry = kuafu::createYZPlane(true, kMat);
     break;
-  case physx::PxGeometryType::eCAPSULE:
+  case RenderGeometryType::eCAPSULE:
     geometry = kuafu::createCapsule(scale.x, scale.y, true, kMat);
     new_scale = {1.F, 1.F, 1.F};
     //    geometry = kuafu::createCube(true, kMat);
@@ -302,7 +302,7 @@ IPxrRigidbody *KuafuScene::addRigidbody(const std::vector<physx::PxVec3> &vertic
   return mBodies.back().get();
 }
 
-IPxrRigidbody *KuafuScene::addRigidbody(physx::PxGeometryType::Enum type,
+IPxrRigidbody *KuafuScene::addRigidbody(RenderGeometryType type,
                                         const physx::PxVec3 &scale, const physx::PxVec3 &color) {
   auto material = std::make_shared<KuafuMaterial>();
   material->setBaseColor({color.x, color.y, color.z, 1.f});

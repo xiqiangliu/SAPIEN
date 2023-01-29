@@ -118,7 +118,9 @@ public:
     _warn_mat_func_not_supported(__func__);
     return 0.0;
   };
-  virtual void setTransmissionRoughness(float roughness) { _warn_mat_func_not_supported(__func__); };
+  virtual void setTransmissionRoughness(float roughness) {
+    _warn_mat_func_not_supported(__func__);
+  };
   [[nodiscard]] virtual float getTransmissionRoughness() const {
     _warn_mat_func_not_supported(__func__);
     return 0.0;
@@ -370,6 +372,15 @@ public:
   virtual ~IPxrPointBody() = default;
 };
 
+enum class RenderGeometryType {
+  eSPHERE,
+  ePLANE,
+  eCAPSULE,
+  eCYLINDER,
+  eBOX,
+  eMESH,
+};
+
 class IPxrRigidbody {
 public:
   virtual void setName(std::string const &name) = 0;
@@ -394,7 +405,7 @@ public:
 
   // TODO: implement
   // return one of "box", "sphere", "capsule", "mesh"
-  virtual physx::PxGeometryType::Enum getType() const {
+  virtual RenderGeometryType getType() const {
     throw std::runtime_error("getType is not implemented");
   }
 
@@ -433,9 +444,9 @@ public:
                                       const physx::PxVec3 &scale,
                                       std::shared_ptr<IPxrMaterial> material) = 0;
 
-  virtual IPxrRigidbody *addRigidbody(physx::PxGeometryType::Enum type, const physx::PxVec3 &scale,
+  virtual IPxrRigidbody *addRigidbody(RenderGeometryType type, const physx::PxVec3 &scale,
                                       std::shared_ptr<IPxrMaterial> material) = 0;
-  inline virtual IPxrRigidbody *addRigidbody(physx::PxGeometryType::Enum type,
+  inline virtual IPxrRigidbody *addRigidbody(RenderGeometryType type,
                                              const physx::PxVec3 &scale,
                                              const physx::PxVec3 &color) = 0;
 

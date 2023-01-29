@@ -124,7 +124,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(const std::string &meshFile,
     spdlog::get("SAPIEN")->error("Failed to load visual mesh: " + meshFile);
     mBodies.push_back(
         std::make_unique<SVulkan2Rigidbody>(this, std::vector<svulkan2::scene::Object *>{},
-                                            physx::PxGeometryType::eTRIANGLEMESH, scale));
+                                            RenderGeometryType::eMESH, scale));
     return mBodies.back().get();
   }
 
@@ -134,7 +134,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(const std::string &meshFile,
   obj.setScale({scale.x, scale.y, scale.z});
   objects2.push_back(&obj);
   mBodies.push_back(std::make_unique<SVulkan2Rigidbody>(
-      this, objects2, physx::PxGeometryType::eTRIANGLEMESH, scale));
+      this, objects2, RenderGeometryType::eMESH, scale));
   return mBodies.back().get();
 }
 
@@ -150,7 +150,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(const std::string &meshFile, const ph
     spdlog::get("SAPIEN")->error("Failed to load visual mesh: " + meshFile);
     mBodies.push_back(
         std::make_unique<SVulkan2Rigidbody>(this, std::vector<svulkan2::scene::Object *>{},
-                                            physx::PxGeometryType::eTRIANGLEMESH, scale));
+                                            RenderGeometryType::eMESH, scale));
     return mBodies.back().get();
   }
   auto model = mParentRenderer->getContext()->getResourceManager()->CreateModelFromFile(meshFile);
@@ -166,7 +166,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(const std::string &meshFile, const ph
   std::vector<svulkan2::scene::Object *> objects2;
   objects2.push_back(&obj);
   mBodies.push_back(std::make_unique<SVulkan2Rigidbody>(
-      this, objects2, physx::PxGeometryType::eTRIANGLEMESH, scale));
+      this, objects2, RenderGeometryType::eMESH, scale));
   return mBodies.back().get();
 }
 
@@ -179,11 +179,11 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(std::shared_ptr<IRenderMesh> mesh,
   auto &obj = mScene->addObject(svulkan2::resource::SVModel::FromData({shape}));
   obj.setScale({scale.x, scale.y, scale.z});
   mBodies.push_back(std::make_unique<SVulkan2Rigidbody>(
-      this, std::vector({&obj}), physx::PxGeometryType::eTRIANGLEMESH, scale));
+      this, std::vector({&obj}), RenderGeometryType::eMESH, scale));
   return mBodies.back().get();
 }
 
-IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
+IPxrRigidbody *SVulkan2Scene::addRigidbody(RenderGeometryType type,
                                            const physx::PxVec3 &scale,
                                            const physx::PxVec3 &color) {
   auto material = std::make_shared<svulkan2::resource::SVMetallicMaterial>(
@@ -191,7 +191,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
   return addRigidbody(type, scale, std::make_shared<SVulkan2Material>(material, mParentRenderer));
 }
 
-IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
+IPxrRigidbody *SVulkan2Scene::addRigidbody(RenderGeometryType type,
                                            const physx::PxVec3 &scale,
                                            std::shared_ptr<IPxrMaterial> material) {
   auto mat = std::dynamic_pointer_cast<SVulkan2Material>(material);
@@ -200,7 +200,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
   }
   svulkan2::scene::Object *object;
   switch (type) {
-  case physx::PxGeometryType::eBOX: {
+  case RenderGeometryType::eBOX: {
     if (!mCubeMesh) {
       mCubeMesh = svulkan2::resource::SVMesh::CreateCube();
     }
@@ -210,7 +210,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
     object = &obj;
     break;
   }
-  case physx::PxGeometryType::eSPHERE: {
+  case RenderGeometryType::eSPHERE: {
     if (!mSphereMesh) {
       mSphereMesh = svulkan2::resource::SVMesh::CreateUVSphere(32, 16);
     }
@@ -220,7 +220,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
     object = &obj;
     break;
   }
-  case physx::PxGeometryType::ePLANE: {
+  case RenderGeometryType::ePLANE: {
     if (!mPlaneMesh) {
       mPlaneMesh = svulkan2::resource::SVMesh::CreateYZPlane();
     }
@@ -230,7 +230,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
     object = &obj;
     break;
   }
-  case physx::PxGeometryType::eCAPSULE: {
+  case RenderGeometryType::eCAPSULE: {
     auto mesh = svulkan2::resource::SVMesh::CreateCapsule(scale.y, scale.x, 32, 8);
     auto shape = svulkan2::resource::SVShape::Create(mesh, mat->getMaterial());
     auto &obj = mScene->addObject(svulkan2::resource::SVModel::FromData({shape}));
@@ -238,8 +238,16 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(physx::PxGeometryType::Enum type,
     object = &obj;
     break;
   }
+  case RenderGeometryType::eCYLINDER: {
+    auto mesh = svulkan2::resource::SVMesh::CreateCylinder(32);
+    auto shape = svulkan2::resource::SVShape::Create(mesh, mat->getMaterial());
+    auto &obj = mScene->addObject(svulkan2::resource::SVModel::FromData({shape}));
+    obj.setScale({scale.x, scale.y, scale.z});
+    object = &obj;
+    break;
+  }
   default:
-    throw std::runtime_error("Failed to ad rigidbody: unsupported render body type");
+    throw std::runtime_error("Failed to add rigidbody: unsupported render body type");
   }
 
   mBodies.push_back(std::make_unique<SVulkan2Rigidbody>(
@@ -289,7 +297,7 @@ IPxrRigidbody *SVulkan2Scene::addRigidbody(std::vector<physx::PxVec3> const &ver
 
   mBodies.push_back(
       std::make_unique<SVulkan2Rigidbody>(this, std::vector<svulkan2::scene::Object *>{&obj},
-                                          physx::PxGeometryType::eTRIANGLEMESH, scale));
+                                          RenderGeometryType::eMESH, scale));
   return mBodies.back().get();
 }
 

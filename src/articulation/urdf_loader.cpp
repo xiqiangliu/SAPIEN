@@ -274,8 +274,7 @@ URDFLoader::parseRobotDescription(XMLDocument const &urdfDoc, XMLDocument const 
                                          visual->name);
         break;
       case Geometry::CYLINDER:
-        spdlog::get("SAPIEN")->error("Cylinder visual is not supported. Replaced with a capsule");
-        currentLinkBuilder->addCapsuleVisual(
+        currentLinkBuilder->addCylinderVisual(
             tVisual2Link * PxTransform({{0, 0, 0}, PxQuat(1.57079633, {0, 1, 0})}),
             visual->geometry->radius * scale,
             std::max(0.f,
@@ -293,9 +292,9 @@ URDFLoader::parseRobotDescription(XMLDocument const &urdfDoc, XMLDocument const 
                                             visual->name);
         break;
       case Geometry::MESH:
-        currentLinkBuilder->addVisualFromFile(getAbsPath(urdfFilename, visual->geometry->filename, packageDir),
-                                              tVisual2Link, visual->geometry->scale * scale,
-                                              nullptr, visual->name);
+        currentLinkBuilder->addVisualFromFile(
+            getAbsPath(urdfFilename, visual->geometry->filename, packageDir), tVisual2Link,
+            visual->geometry->scale * scale, nullptr, visual->name);
         break;
       }
     }
@@ -342,31 +341,22 @@ URDFLoader::parseRobotDescription(XMLDocument const &urdfDoc, XMLDocument const 
         }
         break;
       case Geometry::CYLINDER:
-        if (collision->geometry->length / 2.0f - collision->geometry->radius < 1e-4) {
-          spdlog::get("SAPIEN")->error(
-              "Cylinder collision is not supported. Replaced with a sphere");
-          currentLinkBuilder->addSphereShape(
-              tCollision2Link * PxTransform({{0, 0, 0}, PxQuat(1.57079633, {0, 1, 0})}),
-              collision->geometry->radius * scale, material, density, patchRadius, minPatchRadius);
-        } else {
-          spdlog::get("SAPIEN")->error(
-              "Cylinder collision is not supported. Replaced with a capsule");
-          currentLinkBuilder->addCapsuleShape(
-              tCollision2Link * PxTransform({{0, 0, 0}, PxQuat(1.57079633, {0, 1, 0})}),
-              collision->geometry->radius * scale,
-              std::max(0.f, collision->geometry->length * scale / 2.0f -
-                                collision->geometry->radius * scale),
-              material, density, patchRadius, minPatchRadius);
-        }
+        spdlog::get("SAPIEN")->warn("Cylinder collision is simulated with a mesh. It is better to "
+                                    "use a capsule if possible");
+        currentLinkBuilder->addCylinderShape(
+            tCollision2Link * PxTransform({{0, 0, 0}, PxQuat(1.57079633, {0, 1, 0})}),
+            collision->geometry->radius * scale,
+            collision->geometry->length * scale / 2.0f,
+            material, density, patchRadius, minPatchRadius);
+
         if (collisionIsVisual) {
-          currentLinkBuilder->addCapsuleVisual(
+          currentLinkBuilder->addCylinderVisual(
               tCollision2Link * PxTransform({{0, 0, 0}, PxQuat(1.57079633, {0, 1, 0})}),
               collision->geometry->radius * scale,
-              std::max(0.f, collision->geometry->length * scale / 2.0f -
-                                collision->geometry->radius * scale),
+              collision->geometry->length * scale / 2.0f,
               PxVec3{1, 1, 1}, "");
         }
-
+        break;
       case Geometry::CAPSULE:
         currentLinkBuilder->addCapsuleShape(
             tCollision2Link * PxTransform({{0, 0, 0}, PxQuat(1.57079633, {0, 1, 0})}),

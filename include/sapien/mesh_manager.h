@@ -35,6 +35,8 @@ private:
   std::map<std::string, MeshRecord> mMeshRegistry;
   std::map<std::string, MeshGroupRecord> mMeshGroupRegistry;
 
+  physx::PxConvexMesh *mCylinder{};
+
 public:
   explicit MeshManager(Simulation *simulation);
 
@@ -43,6 +45,8 @@ public:
 
   physx::PxConvexMesh *loadMesh(const std::string &filename, bool useCache = true,
                                 bool saveCache = true);
+
+  physx::PxConvexMesh *createCylinder();
 
   std::vector<physx::PxConvexMesh *> loadMeshGroup(const std::string &filename);
 

@@ -258,7 +258,7 @@ public:
 
   //========== Body ==========//
   IPxrRigidbody *addRigidbody(const std::string &meshFile, const physx::PxVec3 &scale) override;
-  IPxrRigidbody *addRigidbody(physx::PxGeometryType::Enum type, const physx::PxVec3 &scale,
+  IPxrRigidbody *addRigidbody(RenderGeometryType type, const physx::PxVec3 &scale,
                               std::shared_ptr<IPxrMaterial> material) override;
 
   IPxrRigidbody *addRigidbody(std::shared_ptr<IRenderMesh> mesh, const physx::PxVec3 &scale,
@@ -274,7 +274,7 @@ public:
     return nullptr;
   };
 
-  IPxrRigidbody *addRigidbody(physx::PxGeometryType::Enum type, const physx::PxVec3 &scale,
+  IPxrRigidbody *addRigidbody(RenderGeometryType type, const physx::PxVec3 &scale,
                               const physx::PxVec3 &color);
   IPxrRigidbody *addRigidbody(std::vector<physx::PxVec3> const &vertices,
                               std::vector<physx::PxVec3> const &normals,

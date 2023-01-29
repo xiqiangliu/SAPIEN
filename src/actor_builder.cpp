@@ -133,6 +133,26 @@ ActorBuilder::addCapsuleShape(const PxTransform &pose, PxReal radius, PxReal hal
 }
 
 std::shared_ptr<ActorBuilder>
+ActorBuilder::addCylinderShape(const PxTransform &pose, PxReal radius, PxReal halfLength,
+                               std::shared_ptr<SPhysicalMaterial> material, PxReal density,
+                               PxReal patchRadius, PxReal minPatchRadius, bool isTrigger) {
+  ShapeRecord r;
+  r.type = ShapeRecord::Type::Cylinder;
+  r.pose = pose;
+  r.radius = radius;
+  r.length = halfLength;
+  r.material = material;
+  r.density = density;
+  r.patchRadius = patchRadius;
+  r.minPatchRadius = minPatchRadius;
+  r.isTrigger = isTrigger;
+
+  mShapeRecord.push_back(r);
+
+  return shared_from_this();
+}
+
+std::shared_ptr<ActorBuilder>
 ActorBuilder::addSphereShape(const PxTransform &pose, PxReal radius,
                              std::shared_ptr<SPhysicalMaterial> material, PxReal density,
                              PxReal patchRadius, PxReal minPatchRadius, bool isTrigger) {
@@ -218,6 +238,43 @@ std::shared_ptr<ActorBuilder> ActorBuilder::addCapsuleVisual(const PxTransform &
     auto mat = renderer ? renderer->createMaterial() : nullptr;
     mat->setBaseColor({color.x, color.y, color.z, 1.f});
     addCapsuleVisualWithMaterial(pose, radius, halfLength, mat, name);
+  }
+
+  return shared_from_this();
+}
+
+std::shared_ptr<ActorBuilder> ActorBuilder::addCylinderVisualWithMaterial(
+    const PxTransform &pose, PxReal radius, PxReal halfLength,
+    std::shared_ptr<Renderer::IPxrMaterial> material, std::string const &name) {
+  auto renderer = mScene->getSimulation()->getRenderer();
+  if (!renderer) {
+    return shared_from_this();
+  }
+  if (!material) {
+    material = mScene->getSimulation()->getRenderer()->createMaterial();
+  }
+  VisualRecord r;
+  r.type = VisualRecord::Type::Cylinder;
+  r.pose = pose;
+  r.radius = radius;
+  r.length = halfLength;
+  r.material = material;
+  r.name = name;
+
+  mVisualRecord.push_back(r);
+
+  return shared_from_this();
+}
+
+std::shared_ptr<ActorBuilder> ActorBuilder::addCylinderVisual(const PxTransform &pose,
+                                                              PxReal radius, PxReal halfLength,
+                                                              const PxVec3 &color,
+                                                              std::string const &name) {
+  auto renderer = mScene->getSimulation()->getRenderer();
+  if (renderer) {
+    auto mat = renderer ? renderer->createMaterial() : nullptr;
+    mat->setBaseColor({color.x, color.y, color.z, 1.f});
+    addCylinderVisualWithMaterial(pose, radius, halfLength, mat, name);
   }
 
   return shared_from_this();
@@ -359,6 +416,30 @@ void ActorBuilder::buildShapes(std::vector<std::unique_ptr<SCollisionShape>> &sh
       break;
     }
 
+    case ShapeRecord::Type::Cylinder: {
+      PxConvexMesh *mesh = mScene->getSimulation()->getMeshManager().createCylinder();
+      if (!mesh) {
+        spdlog::get("SAPIEN")->error("Failed to load convex mesh for actor");
+        continue;
+      }
+      auto shape = mScene->getSimulation()->createCollisionShape(
+          PxConvexMeshGeometry(mesh, PxMeshScale({r.length, r.radius, r.radius})), material);
+      shape->setContactOffset(mScene->mDefaultContactOffset);
+      if (!shape) {
+        spdlog::get("SAPIEN")->critical("Failed to create shape");
+        throw std::runtime_error("Failed to create shape");
+      }
+      shape->setLocalPose(r.pose);
+      shape->setTorsionalPatchRadius(r.patchRadius);
+      shape->setMinTorsionalPatchRadius(r.minPatchRadius);
+      if (r.isTrigger) {
+        shape->setIsTrigger(true);
+      }
+      shapes.push_back(std::move(shape));
+      densities.push_back(r.density);
+      break;
+    }
+
     case ShapeRecord::Type::MultipleMeshes: {
       auto meshes = mScene->getSimulation()->getMeshManager().loadMeshGroup(r.filename);
       for (auto mesh : meshes) {
@@ -457,15 +538,19 @@ void ActorBuilder::buildVisuals(std::vector<Renderer::IPxrRigidbody *> &renderBo
     Renderer::IPxrRigidbody *body{};
     switch (r.type) {
     case VisualRecord::Type::Box:
-      body = rScene->addRigidbody(PxGeometryType::eBOX, r.scale, r.material);
+      body = rScene->addRigidbody(Renderer::RenderGeometryType::eBOX, r.scale, r.material);
       break;
     case VisualRecord::Type::Sphere:
-      body = rScene->addRigidbody(PxGeometryType::eSPHERE, {r.radius, r.radius, r.radius},
-                                  r.material);
+      body = rScene->addRigidbody(Renderer::RenderGeometryType::eSPHERE,
+                                  {r.radius, r.radius, r.radius}, r.material);
       break;
     case VisualRecord::Type::Capsule:
-      body = rScene->addRigidbody(PxGeometryType::eCAPSULE, {r.length, r.radius, r.radius},
-                                  r.material);
+      body = rScene->addRigidbody(Renderer::RenderGeometryType::eCAPSULE,
+                                  {r.length, r.radius, r.radius}, r.material);
+      break;
+    case VisualRecord::Type::Cylinder:
+      body = rScene->addRigidbody(Renderer::RenderGeometryType::eCYLINDER,
+                                  {r.length, r.radius, r.radius}, r.material);
       break;
     case VisualRecord::Type::File:
       body = rScene->addRigidbody(r.filename, r.scale, r.material);
@@ -539,21 +624,24 @@ void ActorBuilder::buildCollisionVisuals(
     case PxGeometryType::eBOX: {
       PxBoxGeometry geom;
       shape->getPxShape()->getBoxGeometry(geom);
-      cBody = rendererScene->addRigidbody(PxGeometryType::eBOX, geom.halfExtents, PxVec3{0, 0, 1});
+      cBody = rendererScene->addRigidbody(Renderer::RenderGeometryType::eBOX, geom.halfExtents,
+                                          PxVec3{0, 0, 1});
       break;
     }
     case PxGeometryType::eSPHERE: {
       PxSphereGeometry geom;
       shape->getPxShape()->getSphereGeometry(geom);
-      cBody = rendererScene->addRigidbody(
-          PxGeometryType::eSPHERE, {geom.radius, geom.radius, geom.radius}, PxVec3{0, 0, 1});
+      cBody =
+          rendererScene->addRigidbody(Renderer::RenderGeometryType::eSPHERE,
+                                      {geom.radius, geom.radius, geom.radius}, PxVec3{0, 0, 1});
       break;
     }
     case PxGeometryType::eCAPSULE: {
       PxCapsuleGeometry geom;
       shape->getPxShape()->getCapsuleGeometry(geom);
-      cBody = rendererScene->addRigidbody(
-          PxGeometryType::eCAPSULE, {geom.halfHeight, geom.radius, geom.radius}, PxVec3{0, 0, 1});
+      cBody = rendererScene->addRigidbody(Renderer::RenderGeometryType::eCAPSULE,
+                                          {geom.halfHeight, geom.radius, geom.radius},
+                                          PxVec3{0, 0, 1});
       break;
     }
     case PxGeometryType::eCONVEXMESH: {
@@ -816,7 +904,7 @@ SActorStatic *ActorBuilder::buildGround(PxReal altitude, bool render,
       renderMaterial = mScene->getSimulation()->getRenderer()->createMaterial();
     }
     auto body = mScene->mRendererScene->addRigidbody(
-        PxGeometryType::ePLANE, {1.f, renderSize.y, renderSize.x}, renderMaterial);
+        Renderer::RenderGeometryType::ePLANE, {1.f, renderSize.y, renderSize.x}, renderMaterial);
     body->setInitialPose(pose);
     renderBodies.push_back(body);
 

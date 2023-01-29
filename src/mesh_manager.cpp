@@ -350,6 +350,37 @@ physx::PxConvexMesh *MeshManager::loadMesh(const std::string &filename, bool use
   return convexMesh;
 }
 
+physx::PxConvexMesh *MeshManager::createCylinder() {
+  if (mCylinder) {
+    return mCylinder;
+  }
+
+  std::vector<PxVec3> vertices;
+  constexpr int segments = 32;
+  float step = M_PIf * 2.f / segments;
+  for (int i = 0; i < segments; ++i) {
+    vertices.push_back({1.f, std::cos(step * i), std::sin(step * i)});
+    vertices.push_back({-1.f, std::cos(step * i), std::sin(step * i)});
+  }
+
+  PxConvexMeshDesc convexDesc;
+  convexDesc.points.count = vertices.size();
+  convexDesc.points.stride = sizeof(PxVec3);
+  convexDesc.points.data = vertices.data();
+  convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
+  convexDesc.vertexLimit = 256;
+
+  PxDefaultMemoryOutputStream buf;
+  PxConvexMeshCookingResult::Enum result;
+  if (!mSimulation->mCooking->cookConvexMesh(convexDesc, buf, &result)) {
+    return nullptr;
+  }
+  PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+  mCylinder = mSimulation->mPhysicsSDK->createConvexMesh(input);
+
+  return mCylinder;
+}
+
 std::vector<std::vector<int>> splitMesh(aiMesh *mesh) {
   // build adjacency list
   spdlog::get("SAPIEN")->info("splitting mesh with {} vertices", mesh->mNumVertices);

@@ -1742,6 +1742,8 @@ References:
                                  return "Sphere";
                                case sapien::ActorBuilder::ShapeRecord::NonConvexMesh:
                                  return "Nonconvex";
+                               case sapien::ActorBuilder::ShapeRecord::Cylinder:
+                                 return "Cylinder";
                                }
                                return "";
                              })
@@ -1768,6 +1770,8 @@ References:
                                  return "Sphere";
                                case sapien::ActorBuilder::VisualRecord::Mesh:
                                  return "Mesh";
+                               case sapien::ActorBuilder::VisualRecord::Cylinder:
+                                 return "Cylinder";
                                }
                                return "";
                              })
@@ -2465,15 +2469,17 @@ Args:
           "add_primitive_mesh",
           [](Renderer::IPxrScene &scene, std::string const &type, py::array_t<float> scale,
              std::shared_ptr<Renderer::IPxrMaterial> &material) {
-            physx::PxGeometryType::Enum ptype;
+            Renderer::RenderGeometryType ptype;
             if (type == "box") {
-              ptype = physx::PxGeometryType::eBOX;
+              ptype = Renderer::RenderGeometryType::eBOX;
             } else if (type == "sphere") {
-              ptype = physx::PxGeometryType::eSPHERE;
+              ptype = Renderer::RenderGeometryType::eSPHERE;
             } else if (type == "capsule") {
-              ptype = physx::PxGeometryType::eCAPSULE;
+              ptype = Renderer::RenderGeometryType::eCAPSULE;
             } else if (type == "plane") {
-              ptype = physx::PxGeometryType::ePLANE;
+              ptype = Renderer::RenderGeometryType::ePLANE;
+            } else if (type == "cylinder") {
+              ptype = Renderer::RenderGeometryType::eCYLINDER;
             } else {
               throw std::invalid_argument("Unknown type " + type);
             }
@@ -2522,14 +2528,16 @@ Args:
       .def_property_readonly("type",
                              [](Renderer::IPxrRigidbody &body) {
                                switch (body.getType()) {
-                               case physx::PxGeometryType::eBOX:
+                               case Renderer::RenderGeometryType::eBOX:
                                  return "box";
-                               case physx::PxGeometryType::ePLANE:
+                               case Renderer::RenderGeometryType::ePLANE:
                                  return "plane";
-                               case physx::PxGeometryType::eSPHERE:
+                               case Renderer::RenderGeometryType::eSPHERE:
                                  return "sphere";
-                               case physx::PxGeometryType::eCAPSULE:
+                               case Renderer::RenderGeometryType::eCAPSULE:
                                  return "capsule";
+                               case Renderer::RenderGeometryType::eCYLINDER:
+                                 return "cylinder";
                                default:
                                  return "mesh";
                                }
@@ -2539,46 +2547,41 @@ Args:
       // attribute access for different types
       .def_property_readonly("scale",
                              [](Renderer::IPxrRigidbody &body) {
-                               if (body.getType() != physx::PxGeometryType::eTRIANGLEMESH &&
-                                   body.getType() != physx::PxGeometryType::eCONVEXMESH) {
+                               if (body.getType() != Renderer::RenderGeometryType::eMESH) {
                                  throw std::runtime_error(
                                      "Visual body scale is only valid for mesh.");
                                }
                                return vec32array(body.getScale());
                              })
-      .def_property_readonly("radius",
-                             [](Renderer::IPxrRigidbody &body) {
-                               if (body.getType() != physx::PxGeometryType::eSPHERE &&
-                                   body.getType() != physx::PxGeometryType::eCAPSULE) {
-                                 throw std::runtime_error(
-                                     "Visual body radius is only valid for sphere or capsule.");
-                               }
-                               return body.getScale().y;
-                             })
+      .def_property_readonly(
+          "radius",
+          [](Renderer::IPxrRigidbody &body) {
+            if (body.getType() != Renderer::RenderGeometryType::eSPHERE &&
+                body.getType() != Renderer::RenderGeometryType::eCAPSULE &&
+                body.getType() != Renderer::RenderGeometryType::eCYLINDER) {
+              throw std::runtime_error(
+                  "Visual body radius is only valid for sphere, capsule, or cylinder.");
+            }
+            return body.getScale().y;
+          })
       .def_property_readonly("half_lengths",
                              [](Renderer::IPxrRigidbody &body) {
-                               if (body.getType() != physx::PxGeometryType::eBOX) {
+                               if (body.getType() != Renderer::RenderGeometryType::eBOX) {
                                  throw std::runtime_error(
                                      "Visual body half_lengths is only valid for box.");
                                }
                                return vec32array(body.getScale());
                              })
       .def_property_readonly("half_length", [](Renderer::IPxrRigidbody &body) {
-        if (body.getType() != physx::PxGeometryType::eCAPSULE) {
-          throw std::runtime_error("Visual body half_length is only valid for capsule.");
+        if (body.getType() != Renderer::RenderGeometryType::eCAPSULE ||
+            body.getType() != Renderer::RenderGeometryType::eCYLINDER) {
+          throw std::runtime_error(
+              "Visual body half_length is only valid for capsule and cylinder.");
         }
         return body.getScale().x;
       });
 
-  PyRenderShape
-      // .def_readonly("type", &Renderer::RenderShape::type)
-      // .def_readonly("pose", &Renderer::RenderShape::pose)
-      // .def_readonly("visual_id", &Renderer::RenderShape::objId)
-      // .def_property_readonly("scale",
-      //                        [](Renderer::RenderShape &shape) { return
-      //                        vec32array(shape.scale);
-      //                        })
-      .def_property_readonly("mesh", &Renderer::IPxrRenderShape::getGeometry)
+  PyRenderShape.def_property_readonly("mesh", &Renderer::IPxrRenderShape::getGeometry)
       .def_property_readonly("material", &Renderer::IPxrRenderShape::getMaterial)
       .def("set_material", &Renderer::IPxrRenderShape::setMaterial, py::arg("material"));
 

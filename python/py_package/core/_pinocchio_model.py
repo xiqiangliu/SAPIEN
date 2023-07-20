@@ -269,21 +269,27 @@ try:
             else:
                 success = False
 
-            print(success)
+            # print(success)
             return self.q_p2s(best_q), success, best_error
 
 except ModuleNotFoundError:
     if platform.system() == "Linux":
-        warnings.warn("pinnochio package is not installed, fallback to built-in pinocchio")
+        warnings.warn(
+            "pinnochio package is not installed, fallback to built-in pinocchio"
+        )
         from .pysapien_pinocchio import PinocchioModel
-    warnings.warn("pinnochio package is not installed, robotics functionalities will not be available")
+    warnings.warn(
+        "pinnochio package is not installed, robotics functionalities will not be available"
+    )
 except ImportError:
     if platform.system() == "Linux":
         warnings.warn(
             "pinnochio package is broken, fallback to built-in pinocchio. This may be fixed by installing pinocchio via conda instead of pip"
         )
         from .pysapien_pinocchio import PinocchioModel
-    warnings.warn("pinnochio package is broken, robotics functionalities will not be available")
+    warnings.warn(
+        "pinnochio package is broken, robotics functionalities will not be available"
+    )
 
 
 def _create_pinocchio_model(articulation) -> PinocchioModel:

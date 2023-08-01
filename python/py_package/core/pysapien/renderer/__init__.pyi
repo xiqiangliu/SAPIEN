@@ -2,6 +2,7 @@ from __future__ import annotations
 import sapien.core.pysapien.renderer
 import typing
 import numpy
+import pybind11_stubgen.typing_ext
 _Shape = typing.Tuple[int, ...]
 
 __all__ = [
@@ -46,6 +47,7 @@ __all__ = [
     "UISelectable",
     "UISliderAngle",
     "UISliderFloat",
+    "UISliderInt",
     "UITreeNode",
     "UIWidget",
     "UIWindow"
@@ -60,7 +62,7 @@ class Context():
         """
     def create_capsule_mesh(self, radius: float, half_length: float, segments: int = 32, half_rings: int = 8) -> Mesh: ...
     def create_cone_mesh(self, segments: int = 32) -> Mesh: ...
-    def create_cubemap_from_files(self, filenames: typing.Annotated[typing.List[str], FixedSize(6)], mipmap_levels: int) -> Cubemap: 
+    def create_cubemap_from_files(self, filenames: typing.Annotated[typing.List[str], pybind11_stubgen.typing_ext.FixedSize(6)], mipmap_levels: int) -> Cubemap: 
         """
         Load cube map, its mipmaps are generated based on roughness, details see https://learnopengl.com/PBR/IBL/Specular-IBL
         """
@@ -178,9 +180,9 @@ class UIWidget():
     pass
 class UICheckbox(UIWidget):
     @typing.overload
-    def Bind(self, arg0: object, arg1: int) -> UICheckbox: ...
-    @typing.overload
     def Bind(self, arg0: object, arg1: str) -> UICheckbox: ...
+    @typing.overload
+    def Bind(self, arg0: object, arg1: int) -> UICheckbox: ...
     def Callback(self, func: typing.Callable[[UICheckbox], None]) -> UICheckbox: ...
     def Checked(self, checked: bool) -> UICheckbox: ...
     def Id(self, id: str) -> UICheckbox: ...
@@ -495,6 +497,22 @@ class UISliderFloat(UIWidget):
     def value(self) -> float:
         """
         :type: float
+        """
+    pass
+class UISliderInt(UIWidget):
+    def Bind(self, arg0: object, arg1: str) -> UISliderInt: ...
+    def Callback(self, func: typing.Callable[[UISliderInt], None]) -> UISliderInt: ...
+    def Id(self, id: str) -> UISliderInt: ...
+    def Label(self, label: str) -> UISliderInt: ...
+    def Max(self, max: int) -> UISliderInt: ...
+    def Min(self, min: int) -> UISliderInt: ...
+    def Value(self, value: int) -> UISliderInt: ...
+    def WidthRatio(self, width: float) -> UISliderInt: ...
+    def __init__(self) -> None: ...
+    @property
+    def value(self) -> int:
+        """
+        :type: int
         """
     pass
 class UITreeNode(UIWidget):

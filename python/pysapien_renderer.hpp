@@ -162,8 +162,11 @@ void buildRenderer(py::module &parent) {
 
   auto PyUISliderFloat = py::class_<ui::SliderFloat, ui::Widget, std::shared_ptr<ui::SliderFloat>>(
       m, "UISliderFloat");
+  auto PyUISliderInt = py::class_<ui::SliderInt, ui::Widget, std::shared_ptr<ui::SliderInt>>(
+      m, "UISliderInt");
   auto PyUISliderAngle = py::class_<ui::SliderAngle, ui::Widget, std::shared_ptr<ui::SliderAngle>>(
       m, "UISliderAngle");
+
   auto PyUIGizmo = py::class_<ui::Gizmo, ui::Widget, std::shared_ptr<ui::Gizmo>>(m, "UIGizmo");
 
   auto PyUIKeyframe = py::classh<ui::Keyframe, PyKeyframe>(m, "UIKeyframe");
@@ -477,6 +480,17 @@ void buildRenderer(py::module &parent) {
       .def("Callback", &ui::SliderFloat::Callback, py::arg("func"))
       .def_property_readonly("value", &ui::SliderFloat::get)
       .def("Bind", bindObject<ui::SliderFloat, float, &ui::SliderFloat::BindValue>);
+
+  PyUISliderInt.def(py::init<>())
+      .def("WidthRatio", &ui::SliderInt::WidthRatio, py::arg("width"))
+      .def("Label", &ui::SliderInt::Label, py::arg("label"))
+      .def("Id", &ui::SliderInt::Id, py::arg("id"))
+      .def("Min", &ui::SliderInt::Min, py::arg("min"))
+      .def("Max", &ui::SliderInt::Max, py::arg("max"))
+      .def("Value", &ui::SliderInt::Value, py::arg("value"))
+      .def("Callback", &ui::SliderInt::Callback, py::arg("func"))
+      .def_property_readonly("value", &ui::SliderInt::get)
+      .def("Bind", bindObject<ui::SliderInt, int, &ui::SliderInt::BindValue>);
 
   PyUISliderAngle.def(py::init<>())
       .def("WidthRatio", &ui::SliderAngle::WidthRatio, py::arg("width"))
